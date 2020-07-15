@@ -4,18 +4,18 @@
 Create defaults for most field types encountered with Vulkan.
 The second argument is just for generating parent type dependant defaults.
 """
-default{T<:Enum}(::Type{T}, struct) = typemin(T)
+default{T<:Enum}(::Type{T}, struct_) = typemin(T)
 
 """
 Recursively constructs default for a composite type
 """
-function default{T}(::Type{T}, struct)
-    args = [default(fieldtype(T, i), struct) for i=1:nfields(T)]
+function default{T}(::Type{T}, struct_)
+    args = [default(fieldtype(T, i), struct_) for i=1:nfields(T)]
     T(args...)
 end
-default{T<:Number}(::Type{T}, struct) = zero(T)
-default{T<:Ptr}(::Type{T}, struct) = T(vk.api.VK_NULL_HANDLE)
-default{N,T}(::Type{NTuple{N,T}}, struct) = ntuple(x->default(T, struct), N)
+default{T<:Number}(::Type{T}, struct_) = zero(T)
+default{T<:Ptr}(::Type{T}, struct_) = T(vk.api.VK_NULL_HANDLE)
+default{N,T}(::Type{NTuple{N,T}}, struct_) = ntuple(x->default(T, struct_), N)
 
 
 """
