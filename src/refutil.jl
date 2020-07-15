@@ -292,7 +292,7 @@ end
 
 
 function memcpy(destination::Union{Ptr, Array}, source::Union{Ptr, Array}, to_copy::Int)
-	ccall(:memcpy, Void, (Ptr{Void}, Ptr{Void}, Csize_t), destination, source, to_copy)
+	ccall(:memcpy, Cvoid, (Ptr{Cvoid}, Ptr{Cvoid}, Csize_t), destination, source, to_copy)
 end
 function memcpy(destination::Array, source::Array)
 	memcpy(destination, source, min(sizeof(destination), sizeof(source)))

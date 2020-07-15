@@ -79,7 +79,7 @@ global fpAcquireNextImageKHR
 global fpQueuePresentKHR
 
 function fpGetPhysicalDeviceSurfaceSupportKHR(physical_device, queue_family_index, surface, supported)
-    err = ccall(surface_function_pointers[1]::Ptr{Void},
+    err = ccall(surface_function_pointers[1]::Ptr{Cvoid},
         api.VkResult,
         (api.VkPhysicalDevice, UInt8, api.VkSurfaceKHR, Ptr{api.VkBool32}),
         physical_device, queue_family_index, surface, supported
@@ -88,7 +88,7 @@ function fpGetPhysicalDeviceSurfaceSupportKHR(physical_device, queue_family_inde
 end
 
 function fpGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, surface_capabilities)
-    err = ccall(surface_function_pointers[2]::Ptr{Void},
+    err = ccall(surface_function_pointers[2]::Ptr{Cvoid},
         api.VkResult,
         (api.VkPhysicalDevice, api.VkSurfaceKHR, Ptr{api.VkSurfaceCapabilitiesKHR}),
         device, surface, surface_capabilities
@@ -97,7 +97,7 @@ function fpGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, surface_capa
 end
 
 function fpGetPhysicalDeviceSurfaceFormatsKHR(device, surface, surface_format_count, surface_formats)
-    err = ccall(surface_function_pointers[3]::Ptr{Void},
+    err = ccall(surface_function_pointers[3]::Ptr{Cvoid},
         api.VkResult,
         (api.VkPhysicalDevice, api.VkSurfaceKHR, Ptr{UInt32}, Ptr{api.VkSurfaceFormatKHR}),
         device, surface, surface_format_count, surface_formats
@@ -106,7 +106,7 @@ function fpGetPhysicalDeviceSurfaceFormatsKHR(device, surface, surface_format_co
 end
 
 function fpGetPhysicalDeviceSurfacePresentModesKHR(device, queue_family_index, surface, supported)
-    err = ccall(surface_function_pointers[4]::Ptr{Void},
+    err = ccall(surface_function_pointers[4]::Ptr{Cvoid},
         api.VkResult,
         (api.VkPhysicalDevice, api.VkSurfaceKHR, Ptr{UInt32}, Ptr{api.VkPresentModeKHR}),
         device, queue_family_index, surface, supported
@@ -116,23 +116,23 @@ end
 
 
 function fpCreateSwapchainKHR(device, pCreateInfo, pAllocator, pSwapchain)
-    err = ccall(surface_function_pointers[5]::Ptr{Void}, api.VkResult, (api.VkDevice, Ptr{api.VkSwapchainCreateInfoKHR}, Ptr{api.VkAllocationCallbacks}, Ptr{api.VkSwapchainKHR}), device, pCreateInfo, pAllocator, pSwapchain)
+    err = ccall(surface_function_pointers[5]::Ptr{Cvoid}, api.VkResult, (api.VkDevice, Ptr{api.VkSwapchainCreateInfoKHR}, Ptr{api.VkAllocationCallbacks}, Ptr{api.VkSwapchainKHR}), device, pCreateInfo, pAllocator, pSwapchain)
     check(err)
 end
 function fpDestroySwapchainKHR(device, swapchain, pAllocator)
-    err = ccall(surface_function_pointers[6]::Ptr{Void}, Void, (api.VkDevice, api.VkSwapchainKHR, Ptr{api.VkAllocationCallbacks}), device, swapchain, pAllocator)
+    err = ccall(surface_function_pointers[6]::Ptr{Cvoid}, Cvoid, (api.VkDevice, api.VkSwapchainKHR, Ptr{api.VkAllocationCallbacks}), device, swapchain, pAllocator)
     check(err)
 end
 function fpGetSwapchainImagesKHR(device, swapchain, pSwapchainImageCount, pSwapchainImages)
-    err = ccall(surface_function_pointers[7]::Ptr{Void}, api.VkResult, (api.VkDevice, api.VkSwapchainKHR, Ptr{UInt32}, Ptr{api.VkImage}), device, swapchain, pSwapchainImageCount, pSwapchainImages)
+    err = ccall(surface_function_pointers[7]::Ptr{Cvoid}, api.VkResult, (api.VkDevice, api.VkSwapchainKHR, Ptr{UInt32}, Ptr{api.VkImage}), device, swapchain, pSwapchainImageCount, pSwapchainImages)
     check(err)
 end
 function fpAcquireNextImageKHR(device, swapchain, timeout, semaphore, fence, pImageIndex)
-    err = ccall(surface_function_pointers[8]::Ptr{Void}, api.VkResult, (api.VkDevice, api.VkSwapchainKHR, UInt64, api.VkSemaphore, api.VkFence, Ptr{UInt32}), device, swapchain, timeout, semaphore, fence, pImageIndex)
+    err = ccall(surface_function_pointers[8]::Ptr{Cvoid}, api.VkResult, (api.VkDevice, api.VkSwapchainKHR, UInt64, api.VkSemaphore, api.VkFence, Ptr{UInt32}), device, swapchain, timeout, semaphore, fence, pImageIndex)
     check(err)
 end
 function fpQueuePresentKHR(queue, pPresentInfo)
-    err = ccall(surface_function_pointers[9]::Ptr{Void}, api.VkResult, (api.VkQueue, Ptr{api.VkPresentInfoKHR}), queue, pPresentInfo)
+    err = ccall(surface_function_pointers[9]::Ptr{Cvoid}, api.VkResult, (api.VkQueue, Ptr{api.VkPresentInfoKHR}), queue, pPresentInfo)
     check(err)
 end
 

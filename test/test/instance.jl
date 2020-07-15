@@ -18,7 +18,7 @@ function debugg_callback(
         msgCode::Int32,
         pLayerPrefix::Ptr{UInt8},
         pMsg::Ptr{UInt8},
-        pUserData::Ptr{Void}
+        pUserData::Ptr{Cvoid}
     )
     bt = catch_backtrace()
     message = bytestring(pMsg)
@@ -47,7 +47,7 @@ const debug_callback_fun_ptr = cfunction(
         Int32,
         Ptr{UInt8},
         Ptr{UInt8},
-        Ptr{Void}
+        Ptr{Cvoid}
     )
 )
 

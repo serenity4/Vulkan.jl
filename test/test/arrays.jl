@@ -63,7 +63,7 @@ function get_memory_requirements(device, buffer)
     mem_requirements_ref[]
 end
 function map_buffer(device, buffer::VulkanBuffer)
-    data_ref = Ref{Ptr{Void}}(C_NULL)
+    data_ref = Ref{Ptr{Cvoid}}(C_NULL)
     alloc_size =  buffer.allocation_info.allocationSize
 	err = api.vkMapMemory(device, buffer.mem, 0, alloc_size, 0, data_ref)
     check(err)

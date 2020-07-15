@@ -7,8 +7,8 @@ to share some functionality
 """
 abstract type VulkanPointerWrapper end
 
-Base.cconvert(::Type{Ptr{Void}}, x::VulkanPointerWrapper) = x
-function Base.unsafe_convert(::Type{Ptr{Void}}, x::VulkanPointerWrapper)
+Base.cconvert(::Type{Ptr{Cvoid}}, x::VulkanPointerWrapper) = x
+function Base.unsafe_convert(::Type{Ptr{Cvoid}}, x::VulkanPointerWrapper)
     if x.ref == C_NULL
         error("$x is NULL")
     end
