@@ -22,7 +22,7 @@ immutable Vertex{N,T}
     normal::Normal{N,T}
     col::Vec{N,T}
 end
-type Camera
+struct Camera
     projection::Mat4f0
     model::Mat4f0
     normal::Mat4f0

@@ -1,12 +1,11 @@
-#=
-Types for Vulkan
-=#
+#= 
+Types for Vulkan =#
 
 """
 there are lots of pointer types to wrap. We introduce an abstract type for this
 to share some functionality
 """
-abstract VulkanPointerWrapper
+abstract type VulkanPointerWrapper end
 
 Base.cconvert(::Type{Ptr{Void}}, x::VulkanPointerWrapper) = x
 function Base.unsafe_convert(::Type{Ptr{Void}}, x::VulkanPointerWrapper)
@@ -16,31 +15,31 @@ function Base.unsafe_convert(::Type{Ptr{Void}}, x::VulkanPointerWrapper)
     x.ref
 end
 
-#TODO finalize
+# TODO finalize
 
-type PhysicalDevice <: VulkanPointerWrapper
+struct PhysicalDevice <: VulkanPointerWrapper
     ref::api.VkPhysicalDevice
     memory_properties::api.VkPhysicalDeviceMemoryProperties
 end
 
-type Device <: VulkanPointerWrapper
+struct Device <: VulkanPointerWrapper
     ref::api.VkDevice
     physical_device::PhysicalDevice
 end
 
-type Instance <: VulkanPointerWrapper
+struct Instance <: VulkanPointerWrapper
     ref::api.VkInstance
 end
 
 """
 A queue onto which you submit commands that the GPU reads and executes (asynchronously).
 """
-type Queue
+struct Queue
     ref::VkQueue
 end
 
 @enum CommandBufferState RECORDING READY_FOR_SUBMIT RESETTED
-type CommandBuffer <: VulkanPointerWrapper
+struct CommandBuffer <: VulkanPointerWrapper
     ref::api.VkCommandBuffer
     state::CommandBufferState
     commandpool
@@ -49,18 +48,18 @@ end
 
 # Array types
 
-abstract GPUArray{T, N} <: DenseArray{T, N}
+abstract type GPUArray{T,N} <: DenseArray{T,N} end
 
-abstract VulkanArray{T, N} <: GPUArray{T, N}
+abstract type VulkanArray{T,N} <: GPUArray{T,N} end
 
-type DeviceMemory <: VulkanPointerWrapper
+struct DeviceMemory <: VulkanPointerWrapper
     ref::VkDeviceMemory
     device::Device
 end
 """
 Linear data for use on the device.
 """
-type Buffer{T} <: VulkanArray{T, 1}
+struct Buffer{T} <: VulkanArray{T,1}
     ref::api.VkBuffer
     device::Device
     mem::DeviceMemory
@@ -71,21 +70,21 @@ end
 """
 Texture data (including dimensions & format) for use on the device.
 """
-type Image{T, N} <: VulkanArray{T, N}
+struct Image{T,N} <: VulkanArray{T,N}
     ref::VkImage
     device::Device
     mem::VkDeviceMemory
-    dimension::NTuple{N, Int}
+    dimension::NTuple{N,Int}
 end
 
 """
  A collection of state required for a shader to sample textures (format, filtering etc).
 """
-type Sampler
+struct Sampler
     ref::VkSampler
 end
 
-type VertexArray{T}
+struct VertexArray{T}
     id::Int
     parent::AbstractArray{T}
     pipeline_input_state
@@ -95,28 +94,28 @@ end
 """
 A GPU-GPU synchronization object.
 """
-type Semaphore
+struct Semaphore
     ref::VkSemaphore
 end
 
 """
 A GPU-CPU synchronization object.
 """
-type Fence
+struct Fence
     ref::VkFence
 end
 
 """
 A compiled collection of GPU state setting commands, shaders and other such data. (Almost) everything the GPU needs to get ready for rendering/compute work.
 """
-type Pipeline
+struct Pipeline
     ref::VkPipeline
 end
 
 """
 A cache used by the pipeline compilation process. It is used to avoid unnecessary recompilations and can be saved and restored to and from disk to speed up subsequent compilations (for instance, in subsequent runs of the application).
 """
-type PipelineCache
+struct PipelineCache
     ref::VkPipelineCache
 end
 
@@ -124,7 +123,7 @@ end
 Swapchain : A "ring buffer" of images offered by the platform's presentation engine
 (desktop compositors etc) on which the application can render and then submit for presentation.
 """
-type SwapChain <: VulkanPointerWrapper
+struct SwapChain <: VulkanPointerWrapper
     ref::Ref{api.VkSwapchainKHR}
     surface
     buffers
@@ -144,20 +143,20 @@ end
 """
 Pool : A fast memory allocator specifically designed for objects of some specific type (descriptors, command buffers etc).
 """
-abstract Pool <: VulkanPointerWrapper
+abstract type Pool <: VulkanPointerWrapper end
 
 
 
-type DescriptorPool <: Pool
+struct DescriptorPool <: Pool
     ref::VkDescriptorPool
     device::Device
 end
-type PipelineLayout <: VulkanPointerWrapper
+struct PipelineLayout <: VulkanPointerWrapper
     ref::VkPipelineLayout
     device::Device
 end
 
-type DescriptorSetLayout <: VulkanPointerWrapper
+struct DescriptorSetLayout <: VulkanPointerWrapper
     ref::VkDescriptorSetLayout
     device::Device
     pipeline_layout::PipelineLayout
@@ -165,7 +164,7 @@ end
 
 
 
-type GraphicsPipeline <: VulkanPointerWrapper
+struct GraphicsPipeline <: VulkanPointerWrapper
     ref::VkPipeline
     device::Device
 end
