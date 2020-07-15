@@ -197,15 +197,15 @@ function CreateFramebuffer(device, pAllocator, create_info_args::Tuple)
 end
 
 """
-Convenience constructor function for `VkGraphicsPipelines`.
-Instead of passing a reference to `VkGraphicsPipelines`, it will
+Convenience constructor function for `VkPipelines`.
+Instead of passing a reference to `VkPipelines`, it will
 get returned already dereferenced. You also don't need to supply a create info,
 just pass the arguments for it to `create_info_args`.
 For further documentation please refer to the documentation of `vkCreateGraphicsPipelines`.
 """
 function CreateGraphicsPipelines(device, pipelineCache, createInfoCount, pAllocator, create_info_args::Tuple)
-    instance_ptr = Ref{api.VkGraphicsPipelines}(api.VK_NULL_HANDLE)
-    create_info = create(VulkanCore.api.VkGraphicsPipelineCreateInfo, create_info_args)
+    instance_ptr = Ref{api.VkPipelines}(api.VK_NULL_HANDLE)
+    create_info = create(VulkanCore.api.VkPipelineCreateInfo, create_info_args)
     err = api.vkCreateGraphicsPipelines(device, pipelineCache, createInfoCount, create_info, pAllocator, instance_ptr)
     check(err)
     instance_ptr[]

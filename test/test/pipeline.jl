@@ -7,7 +7,7 @@ function loadShaderGLSL(fileName, device::api.VkDevice, stage::api.VkShaderStage
 	if (length(shaderCode) < 1)
         error("$filename is empty and doesn't contain a shader!")
     end
-    push!(shaderCode, 0) #append 0 terminator
+    push!(shaderCode, 0) # append 0 terminator
     # Magic SPV number for shader code header
     pcode = UInt32[0x07230203, 0, stage]
 
@@ -40,18 +40,14 @@ function loadShader(fileName, device::Device, stage::api.VkShaderStageFlagBits)
     end
     pcode = reinterpret(UInt32, shaderCode)
     # create the shader
-    shadermodule = CreateShaderModule(device, C_NULL, (
-        :codeSize, sizeof(pcode),
-        :pCode, pcode
-    ))
+    shadermodule = CreateShaderModule(device, C_NULL, (:codeSize, sizeof(pcode),
+        :pCode, pcode))
     if shadermodule == C_NULL
         error("Shader module not created successfully")
     end
-    shaderStage = create(api.VkPipelineShaderStageCreateInfo, (
-        :stage, stage,
+    shaderStage = create(api.VkPipelineShaderStageCreateInfo, (:stage, stage,
         :_module, shadermodule,
-        :pName, "main",
-    ))
+        :pName, "main",))
     push!(shader_cache, shadermodule)
     push!(shader_cache, pcode)
 
@@ -77,42 +73,29 @@ function preparePipelines(device, pipelineCache, renderPass, pipelineLayout, ver
 
     # Vertex input state
     # Describes the topoloy used with this pipeline
-    inputAssemblyState = create(api.VkPipelineInputAssemblyStateCreateInfo, (
-        # This pipeline renders vertex data as triangle lists
-        :topology, api.VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+    inputAssemblyState = create(api.VkPipelineInputAssemblyStateCreateInfo, (:topology, api.VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
         :flags, 0,
-        :primitiveRestartEnable, api.VK_FALSE
-    ))
+        :primitiveRestartEnable, api.VK_FALSE))
     # Rasterization state
-    rasterizationState = create(api.VkPipelineRasterizationStateCreateInfo, (
-        # Solid polygon mode
-        :polygonMode, api.VK_POLYGON_MODE_FILL,
+    rasterizationState = create(api.VkPipelineRasterizationStateCreateInfo, (:polygonMode, api.VK_POLYGON_MODE_FILL,
         # No culling
         :cullMode, api.VK_CULL_MODE_NONE,
         :frontFace, api.VK_FRONT_FACE_CLOCKWISE,
-        :depthClampEnable, api.VK_TRUE,
-    ))
+        :depthClampEnable, api.VK_TRUE,))
 
-    blendAttachmentState = create(Vector{api.VkPipelineColorBlendAttachmentState}, (
-        :colorWriteMask, 0xf,
-        :blendEnable, api.VK_FALSE
-    ))
+    blendAttachmentState = create(Vector{api.VkPipelineColorBlendAttachmentState}, (:colorWriteMask, 0xf,
+        :blendEnable, api.VK_FALSE))
     # Color blend state
     # Describes blend modes and color masks
-    colorBlendState = create(api.VkPipelineColorBlendStateCreateInfo, (
-        :attachmentCount, 1,
-        :pAttachments, blendAttachmentState
-    ))
+    colorBlendState = create(api.VkPipelineColorBlendStateCreateInfo, (:attachmentCount, 1,
+        :pAttachments, blendAttachmentState))
     # One blend attachment state
     # Blending is not used in this example
 
     # Viewport state
-    viewportState = create(api.VkPipelineViewportStateCreateInfo, (
-        # One viewport
-        :viewportCount, 1,
+    viewportState = create(api.VkPipelineViewportStateCreateInfo, (:viewportCount, 1,
         # One scissor rectangle
-        :scissorCount, 1
-    ))
+        :scissorCount, 1))
 
     # Enable dynamic states
     # Describes the dynamic states to be used with this pipeline
@@ -122,32 +105,23 @@ function preparePipelines(device, pipelineCache, renderPass, pipelineLayout, ver
     dynamic_states_arr = [
         api.VK_DYNAMIC_STATE_VIEWPORT, api.VK_DYNAMIC_STATE_SCISSOR
     ]
-    dynamicState = create(api.VkPipelineDynamicStateCreateInfo, (
-    # The dynamic state properties themselves are stored in the command buffer
-        :pDynamicStates, dynamic_states_arr,
-        :dynamicStateCount, length(dynamic_states_arr)
-    ))
+    dynamicState = create(api.VkPipelineDynamicStateCreateInfo, (:pDynamicStates, dynamic_states_arr,
+        :dynamicStateCount, length(dynamic_states_arr)))
 
-    back = create(api.VkStencilOpState, (
-        :compareOp, api.VK_COMPARE_OP_ALWAYS
-    ))[]
+    back = create(api.VkStencilOpState, (:compareOp, api.VK_COMPARE_OP_ALWAYS))[]
     # Depth and stencil state
     # Describes depth and stenctil test and compare ops
     # Basic depth compare setup with depth writes and depth test enabled
     # No stencil used
-    depthStencilState = create(api.VkPipelineDepthStencilStateCreateInfo, (
-        :depthTestEnable, api.VK_TRUE,
+    depthStencilState = create(api.VkPipelineDepthStencilStateCreateInfo, (:depthTestEnable, api.VK_TRUE,
         :depthWriteEnable, api.VK_TRUE,
         :depthCompareOp, api.VK_COMPARE_OP_LESS_OR_EQUAL,
-        :back, back,
-    ))
+        :back, back,))
 
     # Multi sampling state
-    multisampleState = create(api.VkPipelineMultisampleStateCreateInfo, (
-        :pSampleMask, C_NULL,
+    multisampleState = create(api.VkPipelineMultisampleStateCreateInfo, (:pSampleMask, C_NULL,
     # No multi sampling used in this example
-        :rasterizationSamples, api.VK_SAMPLE_COUNT_1_BIT,
-    ))
+        :rasterizationSamples, api.VK_SAMPLE_COUNT_1_BIT,))
 
     # Load shaders
 
@@ -164,8 +138,7 @@ function preparePipelines(device, pipelineCache, renderPass, pipelineLayout, ver
             api.VK_SHADER_STAGE_FRAGMENT_BIT
         )
     ]
-    create_info_arr = create(Vector{api.VkGraphicsPipelineCreateInfo}, (
-            :sType, api.VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+    create_info_arr = create(Vector{api.VkPipelineCreateInfo}, (:sType, api.VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
             # The layout used for this pipeline
             :layout, pipelineLayout,
             # Renderpass this pipeline is attached to
@@ -182,8 +155,7 @@ function preparePipelines(device, pipelineCache, renderPass, pipelineLayout, ver
             :pMultisampleState, multisampleState,
             :pViewportState, viewportState,
             :pDepthStencilState, depthStencilState,
-            :pDynamicState, dynamicState,
-        )
+            :pDynamicState, dynamicState,)
     )
 
     # Create rendering pipeline

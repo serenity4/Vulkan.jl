@@ -166,6 +166,6 @@ end
 
 
 type GraphicsPipeline <: VulkanPointerWrapper
-    ref::VkGraphicsPipeline
+    ref::VkPipeline
     device::Device
 end
