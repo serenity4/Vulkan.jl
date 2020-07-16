@@ -1,7 +1,7 @@
 using VulkanCore
 using GeometryTypes, GLAbstraction, FixedSizeArrays, GLFW
 
-const api = vk.api
+const api = vk
 include("types.jl")
 include("refutil.jl")
 include("helper.jl")

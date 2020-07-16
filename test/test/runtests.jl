@@ -1,7 +1,7 @@
 using Vulkan
 using GeometryTypes, GLAbstraction, FixedSizeArrays
 gc_enable(false)
-const api = vk.api
+const api = vk
 include("refutil.jl")
 include("helper.jl")
 include("windowing.jl")

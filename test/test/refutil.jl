@@ -14,7 +14,7 @@ function default(::Type{T}, struct_) where T
     T(args...)
 end
 default(::Type{T}, struct_) where T<:Number = zero(T)
-default(::Type{T}, struct_) where T<:Ptr = T(vk.api.VK_NULL_HANDLE)
+default(::Type{T}, struct_) where T<:Ptr = T(vk.VK_NULL_HANDLE)
 default(::Type{NTuple{N,T}}, struct_) where N,T = ntuple(x->default(T, struct_), N)
 
 

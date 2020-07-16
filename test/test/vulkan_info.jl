@@ -1,7 +1,7 @@
 using Vulkan
 using Base.Test
 
-const api = vk.api
+const api = vk
 
 toversion(version::Cuint) = VersionNumber(version >> 22,  (version >> 12) & 0x3ff, version & 0xfff)
 
@@ -16,10 +16,10 @@ assert(err == api.VK_SUCCESS)
 
 function Base.show(io::IO, lp::api.VkLayerProperties)
 	println(io, "Layer Properties: ")
-	println(io, "    Layer Name: ", bytestring(filter(x->x!=0, UInt8[lp.layerName...])))
+	println(io, "    Layer Name: ", bytestring(filter(x->x != 0, UInt8[lp.layerName...])))
 	println(io, "    Spec Version: ", toversion(lp.specVersion))
 	println(io, "    Implementation Version: ", toversion(lp.implementationVersion))
-	println(io, "    description: ", bytestring(filter(x->x!=0, UInt8[lp.description...])))
+	println(io, "    description: ", bytestring(filter(x->x != 0, UInt8[lp.description...])))
 end
 for elem in global_layer_properties
 	println(elem)
@@ -85,14 +85,14 @@ function Base.show(io::IO, pdp::api.VkPhysicalDeviceProperties)
 	println(io, "    Vendor ID ", pdp.vendorID)
 	println(io, "    Device ID: ", pdp.deviceID)
 	println(io, "    Device Type: ", pdp.deviceType)
-	println(io, "    Device Name: ", bytestring(filter(x->x!=0, UInt8[pdp.deviceName...])))
+	println(io, "    Device Name: ", bytestring(filter(x->x != 0, UInt8[pdp.deviceName...])))
 	println(io, "    Pipeline Cache UUID: ", pdp.pipelineCacheUUID)
 	println(io, "    Limits: ", pdp.limits)
 	println(io, "    Sparse Properties: \n    ", pdp.sparseProperties)
 end
 
 limitshow(x::Cuint) = Int(x)
-limitshow(x::NTuple) = "<"*join(map(limitshow, x), " ")*">"
+limitshow(x::NTuple) = "<" * join(map(limitshow, x), " ") * ">"
 limitshow(x) = x
 
 function Base.show(io::IO, pdl::api.VkPhysicalDeviceLimits)
