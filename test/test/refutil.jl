@@ -27,7 +27,7 @@ it will return VK_STRUCTURE_TYPE_APPLICATION_INFO::VkStructureType.
 """
 @generated function default{T}(::Type{api.VkStructureType}, ::Type{T})
     tstring = string(T.name.name)[3:end]
-    splitted = ASCIIString[]
+    splitted = String[]
     tmp = UInt8[]
     previous_char = first(tstring)
     for elem in tstring
@@ -216,15 +216,15 @@ as long as `parent` is alive.
 function struct_convert(t, value, parent)
 	convert(t, value)
 end
-function struct_convert(t::Type{Ptr{Cstring}}, value::Vector{ASCIIString}, parent::WeakRef)
+function struct_convert(t::Type{Ptr{Cstring}}, value::Vector{String}, parent::WeakRef)
 preserve_ref(value, parent)
 ref = Base.unsafe_convert(Ptr{Ptr{Cchar}}, Ref{Ptr{Cchar}}(value))
 Base.unsafe_convert(t, ref)
 end
-function struct_convert(t::Type{Cstring}, value::ASCIIString, parent::WeakRef)
+function struct_convert(t::Type{Cstring}, value::String, parent::WeakRef)
     Base.unsafe_convert(t, value)
 end
-function struct_convert(t::Type{Ptr{Ptr{Cchar}}}, value::Vector{ASCIIString}, parent::WeakRef)
+function struct_convert(t::Type{Ptr{Ptr{Cchar}}}, value::Vector{String}, parent::WeakRef)
     preserve_ref(value, parent)
 	ref = Ref{Ptr{Cchar}}(value)
     Base.unsafe_convert(t, ref)

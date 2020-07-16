@@ -25,7 +25,7 @@ it will return VK_STRUCTURE_TYPE_APPLICATION_INFO::VkStructureType.
 """
 @generated function default(::Type{api.VkStructureType}, ::Type{T}) where T
     tstring = string(T.name.name)[3:end]
-    splitted = ASCIIString[]
+    splitted = String[]
     tmp = UInt8[]
     previous_char = first(tstring)
     for elem in tstring
@@ -214,7 +214,7 @@ function struct_convert(t, value, parent)
     convert(t, value)
 end
 
-function struct_convert(t::Type{Ptr{Ptr{Cchar}}}, value::Vector{ASCIIString}, parent::WeakRef)
+function struct_convert(t::Type{Ptr{Ptr{Cchar}}}, value::Vector{String}, parent::WeakRef)
     preserve_ref(value, parent)
 	ref = Ref{Ptr{Cchar}}(value)
     Base.unsafe_convert(t, ref)
@@ -272,11 +272,11 @@ end
 """
 Slow and silly setindex for fields.
 """
-function Base.setindex!{T, X}(ref::Ref{T}, value::X, field::Symbol)
+function Base.setindex!(ref::Ref{T}, value::X, field::Symbol) where {T, X}
 	i = fieldname2index(T, field)
 	ref[i] = value
 end
-function Base.setindex!{T, X}(ref::Ref{T}, value::X, field::Integer)
+function Base.setindex!(ref::Ref{T}, value::X, field::Integer) where {T, X}
 	ptr = fieldptr(ref, field)
 	FT = eltype(ptr)
 	unsafe_store!(ptr, struct_convert(FT, value, ref))
@@ -285,7 +285,7 @@ end
 """
 The same for arrays
 """
-function Base.setindex!{T, X}(ref::Array{T}, value::X, array_index::Integer, field::Symbol)
+function Base.setindex!(ref::Array{T}, value::X, array_index::Integer, field::Symbol) where {T, X}
 	ptr = fieldptr(ref, array_index, field)
 	unsafe_store!(ptr, struct_convert(eltype(ptr), value, ref))
 	value
@@ -305,9 +305,7 @@ end
 function unsafe_pointer(ref::Ref{T}, ptr_type=T) where T
 	Base.unsafe_convert(Ptr{ptr_type}, ref)
 end
-function memcpy(destination, source::Array)
-	memcpy(destination, source, sizeof(source))
-end
+
 function memcpy(destination, source::T) where T
     isimmutable(T) && error("Type is immutable, meaning it can't be referenced")
     ptr = pointer_from_objref(source)

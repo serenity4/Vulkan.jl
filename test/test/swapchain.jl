@@ -48,7 +48,7 @@ function get_supported_depth_format(physicalDevice)
 
     return false, api.VK_FORMAT_UNDEFINED
 end
-function get_instance_proc_addr(inst, entrypoint::ASCIIString)
+function get_instance_proc_addr(inst, entrypoint::String)
     entrypoint_ptr = api.vkGetInstanceProcAddr(inst, entrypoint)
     if (entrypoint_ptr == C_NULL)
         error("get_instance_proc_addr with $entrypoint returned C_NULL")
@@ -56,7 +56,7 @@ function get_instance_proc_addr(inst, entrypoint::ASCIIString)
     entrypoint_ptr
 end
 
-function get_device_proc_addr(device, entrypoint::ASCIIString)
+function get_device_proc_addr(device, entrypoint::String)
     entrypoint_ptr = api.vkGetDeviceProcAddr(device, entrypoint)
     if (entrypoint_ptr == C_NULL)
         error("get_device_proc_addr with $entrypoint returned C_NULL")
