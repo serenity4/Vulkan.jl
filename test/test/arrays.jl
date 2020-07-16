@@ -9,13 +9,13 @@ end
 
 
 # we allow types as buffers, so eltype is a bit weird
-Base.eltype{T}(v::VulkanBuffer{T}) = T
-Base.eltype{T<:Array}(v::VulkanBuffer{T}) = eltype(T)
+Base.eltype(v::VulkanBuffer{T}) where T = T
+Base.eltype(v::VulkanBuffer{T}) where T<:Array = eltype(T)
 
-Base.length{T}(v::VulkanBuffer{T}) = div(v.size, sizeof(eltype(v)))
+Base.length(v::VulkanBuffer{T}) where T = div(v.size, sizeof(eltype(v)))
 eltype_length(x) = 1
-eltype_length{F<:FixedArray}(x::Type{F}) = length(F)
-flat_length{T}(v::VulkanBuffer{T}) = length(v) * eltype_length(eltype(v))
+eltype_length(x::Type{F}) where F<:FixedArray = length(F)
+flat_length(v::VulkanBuffer{T}) where T = length(v) * eltype_length(eltype(v))
 
 
 function get_descriptor(v::VulkanBuffer, offset=0, range=v.size)
@@ -72,7 +72,7 @@ end
 function unmap_buffer(device, buffer::VulkanBuffer)
     api.vkUnmapMemory(device, buffer.mem)
 end
-function VulkanBuffer{T}(container::T, device, usage)
+function VulkanBuffer(container::T, device, usage) where T
     println(T)
     !is_referencable(T) && error(
         "A Vulkan buffer needs to be able to get a reference to $T, which it can't.
@@ -106,26 +106,26 @@ end
 """
 Prefix for VkFormat
 """
-type2prefix{T<:AbstractFloat}(::Type{T}) = "SFLOAT"
-type2prefix{T<:Integer}(::Type{T}) = "SINT"
-type2prefix{T<:Unsigned}(::Type{T}) = "UINT"
-type2prefix{T<:UFixed}(::Type{T}) = "UNORM"
-type2prefix{T<:Fixed}(::Type{T}) = "SNORM"
-type2prefix{T<:Union{Colorant, FixedArray}}(::Type{T}) = type2prefix(eltype(T))
+type2prefix(::Type{T}) where T<:AbstractFloat = "SFLOAT"
+type2prefix(::Type{T}) where T<:Integer = "SINT"
+type2prefix(::Type{T}) where T<:Unsigned = "UINT"
+type2prefix(::Type{T}) where T<:UFixed = "UNORM"
+type2prefix(::Type{T}) where T<:Fixed = "SNORM"
+type2prefix(::Type{T}) where T<:Union{Colorant, FixedArray} = type2prefix(eltype(T))
 
 """
 For VkFormat, we need to specify the size of every component
 """
-component_types{T<:FixedArray}(x::Type{T}) = ntuple(i->eltype(T), length(T))
-component_types{T}(x::Type{T}) = ntuple(i->fieldtype(T, i), nfields(T))
-component_types{T<:Number}(x::Type{T}) = (T,)
+component_types(x::Type{T}) where T<:FixedArray = ntuple(i->eltype(T), length(T))
+component_types(x::Type{T}) where T = ntuple(i->fieldtype(T, i), nfields(T))
+component_types(x::Type{T}) where T<:Number = (T,)
 
 """
 VkFormat looks like e.g RxGxBx, with x == size of the element type.
 """
 component_string(x) = "RGBA" # RGBA is used for most types, even if they're Vecs or what not
 # For color types we know better
-function component_string{T<:Colorant}(::Type{T})
+function component_string(::Type{T}) where T<:Colorant
     if !(T <: AbstractRGB || (T<:TransparentColor && color_type(T) <: AbstractRGB))
         error("$T not supported. Try any AbstractRGB, or transparent AbstractRGB value")
     end

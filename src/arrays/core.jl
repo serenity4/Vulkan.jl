@@ -1,12 +1,12 @@
 
 # we allow types as buffers, so eltype is a bit weird
-eltype{T}(v::Buffer{T}) = T
-eltype{T <: Array}(v::Buffer{T}) = eltype(T)
+eltype(v::Buffer{T}) where T = T
+eltype(v::Buffer{T}) where T <: Array = eltype(T)
 
-length{T}(v::Buffer{T}) = div(v.size, sizeof(eltype(v)))
+length(v::Buffer{T}) where T = div(v.size, sizeof(eltype(v)))
 eltype_length(x) = 1
-eltype_length{F <: FixedArray}(x::Type{F}) = length(F)
-flattened_length{T}(v::Buffer{T}) = length(v) * eltype_length(eltype(v))
+eltype_length(x::Type{F}) where F <: FixedArray = length(F)
+flattened_length(v::Buffer{T}) where T = length(v) * eltype_length(eltype(v))
 
 
 function get_descriptor(v::Buffer, offset = 0, range = v.size)

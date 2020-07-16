@@ -4,18 +4,18 @@
 Create defaults for most field types encountered with Vulkan.
 The second argument is just for generating parent type dependant defaults.
 """
-default{T<:vk.CEnum.Cenum}(::Type{T}, struct_) = typemin(T)
+default(::Type{T}, struct_) where T<:vk.CEnum.Cenum = typemin(T)
 
 """
 Recursively constructs default for a composite type
 """
-function default{T}(::Type{T}, struct_)
+function default(::Type{T}, struct_) where T
     args = [default(fieldtype(T, i), struct_) for i=1:nfields(T)]
     T(args...)
 end
-default{T<:Number}(::Type{T}, struct_) = zero(T)
-default{T<:Ptr}(::Type{T}, struct_) = T(vk.api.VK_NULL_HANDLE)
-default{N,T}(::Type{NTuple{N,T}}, struct_) = ntuple(x->default(T, struct_), N)
+default(::Type{T}, struct_) where T<:Number = zero(T)
+default(::Type{T}, struct_) where T<:Ptr = T(vk.api.VK_NULL_HANDLE)
+default(::Type{NTuple{N,T}}, struct_) where N,T = ntuple(x->default(T, struct_), N)
 
 
 
@@ -67,10 +67,10 @@ create(Ref{VkFenceCreateInfo},(
 ))
 ```
 """
-function create{T}(::Type{T}, field_values::Tuple)
+function create(::Type{T}, field_values::Tuple) where T
     create(Ref{T}, field_values)
 end
-function create{T}(::Type{Ref{T}}, field_values::Tuple)
+function create(::Type{Ref{T}}, field_values::Tuple) where T
     fieldcount = nfields(T)
     field_filled = Bool[false for i=1:fieldcount]
     ref_instance = Ref{T}()
@@ -127,7 +127,7 @@ function create{T}(::Type{Ref{T}}, field_values::Tuple)
 end
 
 
-function create{T}(::Type{Vector{T}}, field_value_list::Tuple...)
+function create(::Type{Vector{T}}, field_value_list::Tuple...) where T
     isbits(T) || error("$T is not isbits, but needs to be!")
     fieldcount = nfields(T)
     field_filled_list = [Bool[false for i=1:fieldcount] for i=1:length(field_value_list)]
@@ -191,8 +191,8 @@ end
 Can we get a pointer to `T` savely?
 True = yes, false = no!
 """
-is_referencable{T<:DenseArray}(x::T) = true
-is_referencable{T}(x::T) = !isimmutable(T)
+is_referencable(x::T) where T<:DenseArray = true
+is_referencable(x::T) where T = !isimmutable(T)
 
 const REFERENCE_DICT = Dict{WeakRef, Vector}()
 
@@ -234,7 +234,7 @@ function struct_convert(t::Type{Ptr{Cchar}}, value::AbstractString, parent::Weak
     preserve_ref(asciistr, parent)
     Base.unsafe_convert(Ptr{Cchar}, asciistr)
 end
-function struct_convert{T}(t::Type{Ptr{T}}, value::Union{Array, Ref}, parent::WeakRef)
+function struct_convert(t::Type{Ptr{T}}, value::Union{Array, Ref}, parent::WeakRef) where T
     preserve_ref(value, parent)
 	Base.unsafe_convert(t, value)
 end
@@ -244,7 +244,7 @@ end
 """
 Returns the index corresponding to a field name
 """
-function fieldname2index{T}(::Type{T}, field::Symbol, names = fieldnames(T))
+function fieldname2index(::Type{T}, field::Symbol, names = fieldnames(T)) where T
 	for i=1:nfields(T)
 		if names[i] == field
 			return i
@@ -253,11 +253,11 @@ function fieldname2index{T}(::Type{T}, field::Symbol, names = fieldnames(T))
 	error("field $field not found in $(T)!")
 end
 
-function fieldptr{T}(ref::Array{T}, array_index::Integer, field::Symbol)
+function fieldptr(ref::Array{T}, array_index::Integer, field::Symbol) where T
 	i = fieldname2index(T, field)
 	fieldptr(ref, array_index, i)
 end
-function fieldptr{T}(ref::Array{T}, array_index::Integer, field::Integer)
+function fieldptr(ref::Array{T}, array_index::Integer, field::Integer) where T
 	ptr = Ptr{Int8}(pointer(ref, array_index))
 	offset = fieldoffsets(T)[field]
 	ptr += offset
@@ -265,14 +265,14 @@ function fieldptr{T}(ref::Array{T}, array_index::Integer, field::Integer)
 	Ptr{FT}(ptr)
 end
 
-function fieldptr{T}(ref::Ref{T}, field::Symbol)
+function fieldptr(ref::Ref{T}, field::Symbol) where T
 	i = fieldname2index(T, field)
 	fieldptr(ref, i)
 end
 """
 this should be named unsafe?
 """
-function fieldptr{T}(ref::Ref{T}, field::Integer)
+function fieldptr(ref::Ref{T}, field::Integer) where T
 	ptr = Ptr{Int8}(Base.unsafe_convert(Ptr{T}, ref))
 	offset = fieldoffsets(T)[field]
 	ptr += offset
@@ -312,18 +312,18 @@ function memcpy(destination, source::Array)
 	memcpy(destination, source, sizeof(source))
 end
 
-function unsafe_pointer{T}(ref::Ref{T}, ptr_type=T)
+function unsafe_pointer(ref::Ref{T}, ptr_type=T) where T
 	Base.unsafe_convert(Ptr{ptr_type}, ref)
 end
 function memcpy(destination, source::Array)
 	memcpy(destination, source, sizeof(source))
 end
-function memcpy{T}(destination, source::T)
+function memcpy(destination, source::T) where T
     isimmutable(T) && error("Type is immutable, meaning it can't be referenced")
     ptr = pointer_from_objref(source)
 	memcpy(destination, ptr, sizeof(T))
 end
-function memcpy{T}(destination, source::Ref{T})
+function memcpy(destination, source::Ref{T}) where T
     ptr = Base.unsafe_convert(Ptr{T}, source)
 	memcpy(destination, ptr, sizeof(T))
 end
@@ -338,8 +338,8 @@ function check(err::api.VkResult)
 end
 
 
-print_type{T}(x::Ref{T}) = print_type(x[])
-function print_type{T}(x::Array{T})
+print_type(x::Ref{T}) where T = print_type(x[])
+function print_type(x::Array{T}) where T
     println("[")
     for elem in x
         println("(")
@@ -350,7 +350,7 @@ function print_type{T}(x::Array{T})
 end
 
 
-function print_type{T}(x::T, offset = "")
+function print_type(x::T, offset = "") where T
     println(offset, T.name.name, ":")
     names =
     for name in fieldnames(T)
