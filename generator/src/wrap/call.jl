@@ -5,6 +5,9 @@ function from_vk_call(x::Spec, identifier = :x)
     jtype = hl_type(x)
     @match x begin
         # array pointer
+        GuardBy(is_tuple_arr) => @match jtype begin
+            :(NTuple{$N,$T}) => :(ntuple(i -> convert($T, $prop[i]), $N))
+        end
         GuardBy(is_arr) => @match jtype begin
             :(Vector{$_}) => :(unsafe_wrap($jtype, $prop, $(len_expr(x, identifier)); own = true))
         end

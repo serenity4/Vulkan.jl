@@ -88,7 +88,7 @@ function name(ex::Expr)
 end
 
 function names(ex::Expr)
-    assignments = Symbol[name(ex)]
+    assignments = Symbol[]
     postwalk(ex) do _ex
         ex == _ex && return _ex
         @switch _ex begin
@@ -100,6 +100,8 @@ function names(ex::Expr)
         end
         _ex
     end
+    self = name(ex)
+    !in(self, assignments) && pushfirst!(assignments, self)
     assignments
 end
 

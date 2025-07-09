@@ -34,7 +34,7 @@ function write_state(state::Dict, file::AbstractString = STATE_FILE)
   open(file, "w+") do io
     TOML.print(io, state, sorted = true)
   end
-  @__MODULE__().state[] = read_state()
+  @__MODULE__().state = read_state()
 end
 
 keys_to_symbol(d::Dict{String}) = Dict(Symbol(k) => keys_to_symbol(v) for (k, v) in d)

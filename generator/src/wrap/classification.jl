@@ -1,8 +1,8 @@
 is_optional(member::SpecStructMember) = member.name == :pNext || member.requirement ∈ [OPTIONAL, POINTER_OPTIONAL] || is_inferable_length(member)
 is_optional(param::SpecFuncParam) = param.requirement ∈ [OPTIONAL, POINTER_OPTIONAL]
 
-expose_as_kwarg(x::SpecFuncParam) = state[][:functions][follow_alias(x.parent.name, api.aliases)][x.name][:exposed_as_parameter]
-expose_as_kwarg(x::SpecStructMember) = state[][:structs][follow_alias(x.parent.name, api.aliases)][x.name][:exposed_as_parameter]
+expose_as_kwarg(x::SpecFuncParam) = state[:functions][follow_alias(x.parent.name, api.aliases)][x.name][:exposed_as_parameter]
+expose_as_kwarg(x::SpecStructMember) = state[:structs][follow_alias(x.parent.name, api.aliases)][x.name][:exposed_as_parameter]
 
 """
 Represent an integer that gives the start of a C pointer.
@@ -15,7 +15,7 @@ function is_pointer_start(spec::Union{SpecStructMember, SpecFuncParam})
     end
 end
 
-is_semantic_ptr(type) = is_ptr(type) || type == :Cstring
+is_semantic_ptr(type) = is_ptr(type) && !is_tuple(type) || type == :Cstring
 needs_deps(spec::SpecStruct) = any(is_semantic_ptr, spec.members.type)
 "Whether it makes sense to return a success code (i.e. when there are possible errors or non-`SUCCESS` success codes)."
 must_return_status_code(spec::SpecFunc) = must_return_success_code(spec) || !isempty(error_codes(spec))

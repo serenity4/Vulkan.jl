@@ -61,6 +61,7 @@ function struct_name(sym::Symbol, is_high_level = false)
     spec = @something(get(api.structs, sym, nothing), get(api.unions, sym, nothing), api.handles[sym])
     struct_name(spec, is_high_level)
 end
+is_known_type(sym::Symbol) = haskey(api.structs, sym) || haskey(api.unions, sym) || haskey(api.handles, sym)
 
 function struct_name(spec::Spec, is_high_level = false)
     sym = remove_vk_prefix(spec.name)

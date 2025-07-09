@@ -25,11 +25,16 @@ using Pkg.API: read_project
                   $(SIGNATURES)
                   """
 
-const api = VulkanAPI(read_project(joinpath(pkgdir(@__MODULE__, "Project.toml"))).version, include_video_api = false)
+function read_api()
+  project = read_project(joinpath(pkgdir(@__MODULE__, "Project.toml")))
+  return VulkanAPI(project.version, include_video_api = false)
+end
+
+base_api::VulkanAPI = read_api()
+api::VulkanAPI = filter_applicable_symbols(base_api)
 
 include("state.jl")
-
-const state = Ref(read_state())
+state::Dict{Symbol,Any} = read_state()
 
 include("types.jl")
 include("exprs.jl")
@@ -111,6 +116,6 @@ export
 
   generate_state, read_state, write_state,
 
-  api
+  base_api, api
 
 end # module VulkanGen

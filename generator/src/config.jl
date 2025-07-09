@@ -12,20 +12,21 @@ Base.@kwdef struct WrapperConfig
     destfile::String
 end
 
-include_provisional_exts(config::WrapperConfig) = config.include_provisional_exts || PLATFORM_PROVISIONAL in config.include_platforms
+include_provisional_exts(config::WrapperConfig) = config.include_provisional_exts || in(PLATFORM_PROVISIONAL, config.include_platforms)
 
 function extensions(config::WrapperConfig)
-    exts = filter(x -> x.is_provisional && include_provisional_exts(config) || x.platform in config.include_platforms || x.platform == PLATFORM_NONE && config.wrap_core, filter(x -> EXTENSION_SUPPORT_VULKAN in x.support, api.extensions))
-end
-
-function _filter_specs(specs, extensions, wrap_core)
-    filter(specs) do spec
-        ext = get(api.extensions, spec, nothing)
-        isnothing(ext) && wrap_core || ext in extensions
+    exts = filter(base_api.extensions) do extension
+        !extension.is_provisional || include_provisional_exts(config) || return false
+        in(extension.platform, config.include_platforms) || extension.platform == PLATFORM_NONE && config.wrap_core || return false
+        in(VULKAN, extension.applicable) || return false
+        return true
     end
 end
 
-filter_specs(config::WrapperConfig) = x -> _filter_specs(x, extensions(config), config.wrap_core)
+function exclude_extensions(config::WrapperConfig)
+    exts = extensions(config)
+    return filter(!in(exts), base_api.extensions)
+end
 
 abstract type Platform end
 

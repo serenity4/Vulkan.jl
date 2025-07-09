@@ -2,7 +2,7 @@ function hl_type(spec::Spec)
     @match s = spec begin
         if s.name == :pNext end => :Any
         if is_version(s, api.constants) end => :VersionNumber
-        GuardBy(is_arr) => begin
+        if is_arr(s) end => begin
             T = hl_type(ptr_type(s.type))
             :(Vector{$T})
         end

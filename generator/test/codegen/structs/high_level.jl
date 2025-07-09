@@ -118,7 +118,7 @@
         ))
 
         test_constructor_core_to_hl(:VkPhysicalDeviceMemoryProperties, false, :(
-            PhysicalDeviceMemoryProperties(x.memoryTypeCount, MemoryType.(x.memoryTypes), x.memoryHeapCount, MemoryHeap.(x.memoryHeaps))
+            PhysicalDeviceMemoryProperties(ntuple((i->convert(MemoryType, x.memoryTypes[i])), Int(VK_MAX_MEMORY_TYPES)), ntuple((i->convert(MemoryHeap, x.memoryHeaps[i])), Int(VK_MAX_MEMORY_HEAPS)))
         ))
 
         test_constructor_core_to_hl(:VkDisplayPlaneCapabilities2KHR, true, :(
@@ -130,7 +130,7 @@
         ))
 
         test_constructor_core_to_hl(:VkPhysicalDeviceGroupProperties, true, :(
-            PhysicalDeviceGroupProperties(load_next_chain(x.pNext, next_types...), x.physicalDeviceCount, PhysicalDevice.(x.physicalDevices), from_vk(Bool, x.subsetAllocation))
+            PhysicalDeviceGroupProperties(load_next_chain(x.pNext, next_types...), ntuple((i->convert(PhysicalDevice, x.physicalDevices[i])), Int(VK_MAX_DEVICE_GROUP_SIZE)), from_vk(Bool, x.subsetAllocation))
         ))
 
         test_constructor_core_to_hl(:VkAccelerationStructureVersionInfoKHR, true, :(

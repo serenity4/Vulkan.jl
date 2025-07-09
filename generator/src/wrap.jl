@@ -149,21 +149,21 @@ include("wrap/reflection.jl")
 include("wrap/docs.jl")
 
 function VulkanWrapper(config::WrapperConfig)
-    f = filter_specs(config)
+    global api = filter_applicable_symbols(base_api; exclude_extensions = map(x -> x.name, exclude_extensions(config)))
 
-    constants = collect(ConstantDefinition.(filter(include_constant, f(api.constants))))
-    enums = collect(EnumDefinition.(f(api.enums)))
-    bitmasks = collect(BitmaskDefinition.(f(api.bitmasks)))
-    handles = collect(HandleDefinition.(f(api.handles)))
+    constants = ConstantDefinition.(filter(include_constant, api.constants))
+    enums = EnumDefinition.(api.enums)
+    bitmasks = collect(BitmaskDefinition.(api.bitmasks))
+    handles = collect(HandleDefinition.(api.handles))
 
     # Structures.
-    structs = StructDefinition{false}.(f(api.structs))
+    structs = StructDefinition{false}.(api.structs)
     structs_hl = StructDefinition{true}.(structs)
 
     struct_constructors = Constructor.(structs)
     struct_constructors_from_hl = [Constructor(T, x) for (T, x) in zip(structs, structs_hl)]
     struct_constructors_from_ll = [Constructor(T, x) for (T, x) in zip(structs_hl, structs)]
-    struct_constructors_from_core = [Constructor(T, x) for (T, x) in zip(structs_hl, f(api.structs))]
+    struct_constructors_from_core = [Constructor(T, x) for (T, x) in zip(structs_hl, api.structs)]
     struct_constructors_hl = Constructor.(structs_hl)
 
     ## Do not overwrite the default constructor (leads to infinite recursion).
@@ -172,7 +172,7 @@ function VulkanWrapper(config::WrapperConfig)
     end
 
     # Unions.
-    unions = StructDefinition{false}.(f(api.unions))
+    unions = StructDefinition{false}.(api.unions)
     unions_hl = StructDefinition{true}.(unions)
 
     union_constructors = [constructors.(unions)...;]
@@ -183,13 +183,13 @@ function VulkanWrapper(config::WrapperConfig)
 
     enum_converts_to_integer = [Convert(enum, enum_val_type(enum)) for enum in enums]
     enum_converts_to_enum = [Convert(enum_val_type(enum), enum) for enum in enums]
-    enum_converts_from_spec = [Convert(enum, spec_enum.name) for (enum, spec_enum) in zip(enums, f(api.enums))]
-    enum_converts_to_spec = [Convert(spec_enum.name, enum) for (enum, spec_enum) in zip(enums, f(api.enums))]
+    enum_converts_from_spec = [Convert(enum, spec_enum.name) for (enum, spec_enum) in zip(enums, api.enums)]
+    enum_converts_to_spec = [Convert(spec_enum.name, enum) for (enum, spec_enum) in zip(enums, api.enums)]
     struct_converts_to_ll = [Convert(T, x) for (T, x) in zip(structs, structs_hl)]
     union_converts_to_ll = [Convert(T, x) for (T, x) in zip(unions, unions_hl)]
 
-    funcs = APIFunction.(f(api.functions), false)
-    funcs_fptr = APIFunction.(f(api.functions), true)
+    funcs = APIFunction.(api.functions, false)
+    funcs_fptr = APIFunction.(api.functions, true)
     funcs_hl = promote_hl.(funcs)
     funcs_hl_fptr = promote_hl.(funcs_fptr)
 
@@ -207,7 +207,7 @@ function VulkanWrapper(config::WrapperConfig)
     handle_constructors_api_hl_fptr = Constructor{HandleDefinition,APIFunction{APIFunction{SpecFunc}}}[]
 
     for handle in handles
-        cs = f(filter(x -> x.handle == handle.spec && !x.batch, api.constructors))
+        cs = filter(x -> x.handle == handle.spec && !x.batch, api.constructors)
         for api_constructor in cs
             (; func) = api_constructor
             f1 = APIFunction(func, false)
@@ -244,22 +244,29 @@ function VulkanWrapper(config::WrapperConfig)
 
     parent_overloads = Parent.(filter(x -> !isnothing(x.spec.parent), handles))
 
-    stypes = StructureType.(filter(x -> haskey(api.structure_types, x.name), f(api.structs)))
-    hl_type_mappings = [HLTypeMapping.(f(api.structs)); HLTypeMapping.(f(api.unions))]
-    core_type_mappings = [CoreTypeMapping.(f(api.structs)); CoreTypeMapping.(f(api.unions))]
-    intermediate_type_mappings = IntermediateTypeMapping.(filter(has_intermediate_type, f(api.structs)))
+    stypes = StructureType.(filter(x -> haskey(api.structure_types, x.name), api.structs))
+    hl_type_mappings = [HLTypeMapping.(api.structs); HLTypeMapping.(api.unions)]
+    core_type_mappings = [CoreTypeMapping.(api.structs); CoreTypeMapping.(api.unions)]
+    intermediate_type_mappings = IntermediateTypeMapping.(filter(has_intermediate_type, api.structs))
 
-    # For SPIR-V, there is no platform-dependent behavior, so no need to call `f`.
     spirv_exts = api.extensions_spirv
     spirv_caps = map(api.capabilities_spirv) do spec
-        feats = map(spec.enabling_features) do feat
-            FeatureCondition(struct_name(follow_alias(feat.type, api.aliases), true), nc_convert(SnakeCaseLower, feat.member), feat.core_version, feat.extension)
+        features = FeatureCondition[]
+        for feature in spec.enabling_features
+            type = follow_alias(feature.type, api.aliases)
+            is_known_type(type) || continue
+            condition = FeatureCondition(struct_name(type, true), nc_convert(SnakeCaseLower, feature.member), feature.core_version, feature.extension)
+            push!(features, condition)
         end
-        props = map(spec.enabling_properties) do prop
-            bit = isnothing(prop.bit) ? nothing : remove_vk_prefix(prop.bit)
-            PropertyCondition(struct_name(prop.type, true), nc_convert(SnakeCaseLower, prop.member), prop.core_version, prop.extension, prop.is_bool, bit)
+        properties = PropertyCondition[]
+        for property in spec.enabling_properties
+            type = follow_alias(property.type, api.aliases)
+            is_known_type(type) || continue
+            bit = isnothing(property.bit) ? nothing : remove_vk_prefix(property.bit)
+            condition = PropertyCondition(struct_name(type, true), nc_convert(SnakeCaseLower, property.member), property.core_version, property.extension, property.is_bool, bit)
+            push!(properties, condition)
         end
-        SpecCapabilitySPIRV(spec.name, spec.promoted_to, spec.enabling_extensions, feats, props)
+        SpecCapabilitySPIRV(spec.name, spec.promoted_to, spec.enabling_extensions, features, properties)
     end
 
     exported_symbols = Symbol[
@@ -269,7 +276,6 @@ function VulkanWrapper(config::WrapperConfig)
     aliases = AliasDeclaration[]
     for (source, target) in pairs(api.aliases.dict)
         startswith(string(target), "vk") && continue
-        in(source, api.disabled_symbols) && continue
         spec = api[source]
         source, target = @match spec begin
             ::SpecBitmask => bitmask_flag_type.((source, target))
@@ -279,7 +285,7 @@ function VulkanWrapper(config::WrapperConfig)
         target in exported_symbols && push!(aliases, AliasDeclaration(source => target))
     end
     function_aliases = Expr[]
-    functions = f(api.functions)
+    functions = api.functions
     for (source, target) in pairs(api.aliases.dict)
         al = AliasDeclaration(source => target)
         startswith(string(source), "vk") || continue
